@@ -1,8 +1,17 @@
+/*
+	Modified by Jorge Munoz Taylor
+	A53863
+	IE0424
+	University of Costa Rica
+	II-2020
+*/
+
 `timescale 1 ns / 1 ps
 
 module system (
 	input            clk,
 	input            resetn,
+	input 			 irq, // Set a irq on the cpu
 	output           trap,
 	output reg [7:0] out_byte,
 	output reg       out_byte_en
@@ -27,7 +36,15 @@ module system (
 	wire [31:0] mem_la_wdata;
 	wire [3:0] mem_la_wstrb;
 
-	picorv32 picorv32_core (
+	picorv32 #(
+		// Enable the irq handler of picorv32 core
+		.ENABLE_IRQ       (1),
+		.LATCHED_IRQ      (0),
+		.ENABLE_IRQ_QREGS (0),
+		.PROGADDR_IRQ     (32'h0000_0010)
+	)
+	
+	picorv32_core (
 		.clk         (clk         ),
 		.resetn      (resetn      ),
 		.trap        (trap        ),
@@ -42,7 +59,8 @@ module system (
 		.mem_la_write(mem_la_write),
 		.mem_la_addr (mem_la_addr ),
 		.mem_la_wdata(mem_la_wdata),
-		.mem_la_wstrb(mem_la_wstrb)
+		.mem_la_wstrb(mem_la_wstrb),
+		.irq		 ( {28'b0, irq, 3'b0} )
 	);
 
 	reg [31:0] memory [0:MEM_SIZE-1];
@@ -68,10 +86,13 @@ module system (
 				if (mem_la_wstrb[3]) memory[mem_la_addr >> 2][31:24] <= mem_la_wdata[31:24];
 			end
 			else
-			if (mem_la_write && mem_la_addr == 32'h1000_0000) begin
+
+			// Put the irq count on the outbyte output
+			if (mem_la_write && mem_la_addr == 32'h1000_0004) begin
 				out_byte_en <= 1;
 				out_byte <= mem_la_wdata;
 			end
+
 		end
 	end else begin
 		always @(posedge clk) begin

@@ -1,3 +1,11 @@
+/*
+	Modified by Jorge Munoz Taylor
+	A53863
+	IE0424
+	University of Costa Rica
+	II-2020
+*/
+
 #include <stdint.h>
 
 #define LED_REGISTERS_MEMORY_ADD 0x10000000
@@ -23,15 +31,8 @@ uint32_t *irq(uint32_t *regs, uint32_t irqs) {
 
 
 void main() {
-	uint32_t number_to_display = 0;
-	uint32_t counter = 0;
 
-	while (1) {
-		counter = 0;
-		putuint(number_to_display);
-		number_to_display++;
-		while (counter < LOOP_WAIT_LIMIT) {
-			counter++;
-		}
-	}
+	// The stack in an infinite loop that does nothing
+	while (1) 
+	{}
 }
