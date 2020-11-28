@@ -20,13 +20,36 @@ module accelerometer_reader
     input MISO,
     
     output MOSI,
-    output SCLK,
-    output CS,
+    output SCLK, 
+    output reg CS,  // Chip select, select the slave
     output [15:0] Y_value,
     output [15:0] Z_value
 );
+    reg [4:0] counter = 0;
+    
+    always @(posedge clk)
+    begin
+        
+        if ( counter == 24 )
+        begin
+            CS      <= 1; // Stop transfer
+            counter <= 0;
+        end
 
+        else if ( counter > 0 )
+        begin
+            // Begin the instruction transfer
+            CS      <= 0;
+            counter <= counter+1;
+        end
 
+        else if ( counter == 0 )
+        begin
+            CS      <= 1;
+            counter <= counter+1;
+        end
+
+    end
 
 
 endmodule

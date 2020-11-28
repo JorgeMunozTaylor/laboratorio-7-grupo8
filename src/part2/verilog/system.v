@@ -11,10 +11,20 @@
 module system (
 	input            clk,
 	input            resetn,
-	input 			 irq, // Set a irq on the cpu
 	output           trap,
 	output reg [7:0] out_byte,
-	output reg       out_byte_en
+	output reg       out_byte_en,
+	output     [7:0] catodes,
+	output     [7:0] anodes,
+
+	// Accelerometer interface
+	input INT1,
+	input INT2,
+	input MISO,
+
+	output MOSI,
+	output CS,  //Active low
+	output SCLK
 );
 	// set this to 0 for better timing but less performance/MHz
 	parameter FAST_MEMORY = 1;
@@ -59,8 +69,8 @@ module system (
 		.mem_la_write(mem_la_write),
 		.mem_la_addr (mem_la_addr ),
 		.mem_la_wdata(mem_la_wdata),
-		.mem_la_wstrb(mem_la_wstrb),
-		.irq		 ( {28'b0, irq, 3'b0} )
+		.mem_la_wstrb(mem_la_wstrb)
+		//.irq		 ( {28'b0, irq, 3'b0} )
 	);
 
 	reg [31:0] memory [0:MEM_SIZE-1];
@@ -73,6 +83,45 @@ module system (
 
 	reg [31:0] m_read_data;
 	reg m_read_en;
+
+
+	// ******************************************
+	// Store the num to display in the nexys 4 DDR (LEDS or 7-segment ).
+	reg [31:0] num_to_display;
+
+	seven_segment_hex DISPLAYS_HEX
+	(
+		.clk            ( clk            ), // Main clock of the circuit.
+		.num_to_display ( num_to_display ), // 32 bit number that will show on the displays.
+		.reset          ( resetn         ), // Reset the circuit to 0's.
+		.catodes        ( catodes        ), // 7 segment code of digit for the display.
+		.anodes         ( anodes         )  // Select display that turn on.
+	);
+
+	// ******************************************
+	// Accelerometer reader module instantiation
+	// ******************************************
+
+    wire MISO;
+    wire MOSI;
+    wire SCLK; 
+    wire CS;  // Chip select, select the slave
+    wire [15:0] Y_value;
+    wire [15:0] Z_value;
+
+	accelerometer_reader ACCELEROMETER
+	(
+		.clk     ( clk     ),
+		.reset   ( resetn  ),
+		.MISO    ( MISO    ),
+		.MOSI    ( MOSI    ),
+		.SCLK    ( SCLK    ), 
+		.CS      ( CS      ),  
+		.Y_value ( Y_value ),
+		.Z_value ( Z_value )
+	);
+	// ******************************************
+
 
 	generate if (FAST_MEMORY) begin
 		always @(posedge clk) begin
@@ -91,6 +140,7 @@ module system (
 			if (mem_la_write && mem_la_addr == 32'h1000_0004) begin
 				out_byte_en <= 1;
 				out_byte <= mem_la_wdata;
+				num_to_display <= mem_la_wdata;
 			end
 
 		end

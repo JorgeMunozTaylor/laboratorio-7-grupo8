@@ -18,58 +18,31 @@ module system_tb;
 			$dumpfile("system.vcd");
 			$dumpvars(0, system_tb);
 		end
-
-		// Put 8 irq on the CPU
-		repeat (100) @(posedge clk);
-		resetn <= 1;
-		repeat (1000) @(posedge clk);
-		irq <= 1;
-		repeat (10) @(posedge clk);
-		irq <= 0;
-		repeat (5000) @(posedge clk);
-		irq <= 1;
-		repeat (10) @(posedge clk);
-		irq <= 0;
-		repeat (5000) @(posedge clk);
-		irq <= 1;
-		repeat (10) @(posedge clk);
-		irq <= 0;
-		repeat (5000) @(posedge clk);
-		irq <= 1;
-		repeat (10) @(posedge clk);
-		irq <= 0;
-		repeat (5000) @(posedge clk);
-		irq <= 1;
-		repeat (10) @(posedge clk);
-		irq <= 0;
-		repeat (5000) @(posedge clk);
-		irq <= 1;
-		repeat (10) @(posedge clk);
-		irq <= 0;
-		repeat (5000) @(posedge clk);
-		irq <= 1;
-		repeat (10) @(posedge clk);
-		irq <= 0;
-		repeat (5000) @(posedge clk);
-		irq <= 1;
-		repeat (10) @(posedge clk);
-		irq <= 0;
 	end
 
 	wire trap;
 	wire [7:0] out_byte;
 	wire out_byte_en;
-	reg irq = 0; // Reg that set a IRQ.
+	wire INT1;
+	wire INT2;
+	wire MISO;
 
-
+	wire MOSI;
+	wire CS;  //Active low
+	wire SCLK;
 
 	system uut (
 		.clk        (clk        ),
 		.resetn     (resetn     ),
-		.irq        (irq        ),
 		.trap       (trap       ),
 		.out_byte   (out_byte   ),
-		.out_byte_en(out_byte_en)
+		.out_byte_en(out_byte_en),
+	    .INT1       ( INT1      ),
+	    .INT2       ( INT2      ),
+	    .MISO       ( MISO      ),
+	    .MOSI       ( MOSI      ),
+	    .CS         ( CS        ), 
+	    .SCLK       ( SCLK      )
 	);
 
 	always @(posedge clk) begin
