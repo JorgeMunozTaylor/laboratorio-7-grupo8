@@ -31,7 +31,7 @@ module system_tb;
 	wire out_byte_en;
 	wire INT1;
 	wire INT2;
-	reg MISO;
+	reg  MISO;
 	wire MOSI;
 	wire CS;  //Active low
 	wire SCLK;
@@ -153,43 +153,40 @@ module system_tb;
 		else if (counter==16)
 		begin
 			axis_addr [0] = MOSI;
+			MISO = ( read_write == read )? reg_output[7]:0;
 		end
 
 
 
 		else if (counter==17)
 		begin
-			MISO = ( read_write == read )? reg_output[7]:0;
+			MISO = ( read_write == read )? reg_output[6]:0;
 		end
 		else if (counter==18)
 		begin
-			MISO = ( read_write == read )? reg_output[6]:0;
+			MISO = ( read_write == read )? reg_output[5]:0;
 		end
 		else if (counter==19)
 		begin
-			MISO = ( read_write == read )? reg_output[5]:0;
+			MISO = ( read_write == read )? reg_output[4]:0;
 		end
 		else if (counter==20)
 		begin
-			MISO = ( read_write == read )? reg_output[4]:0;
+			MISO = ( read_write == read )? reg_output[3]:0;
 		end
 		else if (counter==21)
 		begin
-			MISO = ( read_write == read )? reg_output[3]:0;
+			MISO = ( read_write == read )? reg_output[2]:0;
 		end
 		else if (counter==22)
 		begin
-			MISO = ( read_write == read )? reg_output[2]:0;
+			MISO = ( read_write == read )? reg_output[1]:0;
 		end
 		else if (counter==23)
 		begin
-			MISO = ( read_write == read )? reg_output[1]:0;
-		end
-		else if (counter==24)
-		begin
 			MISO = ( read_write == read )? reg_output[0]:0;
 		end
-
+		
 	end
 
 
