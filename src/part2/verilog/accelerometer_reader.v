@@ -26,23 +26,35 @@ module accelerometer_reader
     output [15:0] Z_value
 );
     // Reg address of the accelerometer Y and Z axis
-    //reg [7:0] Y_LSB = 8'h10;
-    //reg [7:0] Y_MSB = 8'h11;
-    //reg [7:0] Z_LSB = 8'h12;
-    //reg [7:0] Z_MSB = 8'h13;
-    reg [7:0] axis_addr = 8'h10;
+    // Y_LSB = 8'h10;
+    // Y_MSB = 8'h11;
+    // Z_LSB = 8'h12;
+    // Z_MSB = 8'h13;
+    reg [7:0] axis_addr = 8'h0F; // 0x10-1
 
     reg [7:0] read  = 8'h0B;
     reg [7:0] write = 8'h0A;
 
     reg       counter           = 0;
     reg [4:0] sclk_counter      = 0;
-    reg [1:0] register_selector = 0; //Select the reg to read or write
+    //reg [1:0] register_selector = 0; //Select the reg to read or write
 
     reg [15:0] y_data;
     reg [15:0] z_data;
 
     
+    always @(CS)
+    begin
+        if (CS == 1)
+        begin
+            if ( axis_addr != 8'h13 )
+                axis_addr <= axis_addr+1;
+            else
+                axis_addr <= 8'h10;
+        end
+    end
+
+
     always @(posedge clk)
     begin
         
@@ -55,7 +67,7 @@ module accelerometer_reader
         if ( counter != 0 )
         begin
             // Begin the instruction transfer
-            CS      <= 0;
+            CS <= 0;
         end
 
         else if ( counter == 0 )
@@ -70,7 +82,6 @@ module accelerometer_reader
     begin
         if ( CS == 0 )
             SCLK <= !SCLK;
-    
         else
             SCLK <= 1;
     end
@@ -137,8 +148,5 @@ module accelerometer_reader
         else
             sclk_counter <= 0;
     end
-
-
-
 
 endmodule

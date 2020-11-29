@@ -52,8 +52,7 @@ module system (
 		.LATCHED_IRQ      (0),
 		.ENABLE_IRQ_QREGS (0),
 		.PROGADDR_IRQ     (32'h0000_0010)
-	)
-	
+	)	
 	picorv32_core (
 		.clk         (clk         ),
 		.resetn      (resetn      ),
