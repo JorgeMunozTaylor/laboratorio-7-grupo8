@@ -26,7 +26,6 @@ module system_tb;
 	wire INT1;
 	wire INT2;
 	wire MISO;
-
 	wire MOSI;
 	wire CS;  //Active low
 	wire SCLK;
