@@ -136,12 +136,19 @@ module system (
 			else
 
 			// Put the irq count on the outbyte output
-			if (mem_la_write && mem_la_addr == 32'h1000_0004) begin
-				out_byte_en <= 1;
-				out_byte <= mem_la_wdata;
+			if (mem_la_write && mem_la_addr == 32'h1000_0000) begin
+				out_byte_en    <= 1;
+				out_byte 	   <= mem_la_wdata;
 				num_to_display <= mem_la_wdata;
 			end
 
+			else if (mem_la_read && mem_la_addr == 32'h2000_0000 && CS) begin
+				mem_rdata <= Y_value;
+			end
+
+			else if (mem_la_read && mem_la_addr == 32'h3000_0000 && CS) begin
+				mem_rdata <= Z_value;
+			end
 		end
 	end else begin
 		always @(posedge clk) begin

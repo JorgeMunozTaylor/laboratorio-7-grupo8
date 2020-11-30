@@ -8,6 +8,8 @@
 
 `timescale 1 ns / 1 ps
 
+`define READ  8'h0B //Read instruction
+`define WRITE 8'h0A //Write instruction
 `define Y_LSB 8'h10
 `define Y_MSB 8'h11
 `define Z_LSB 8'h12
@@ -40,8 +42,8 @@ module system_tb;
 	reg [7:0] axis_addr; //Store the address
 	reg [7:0] reg_output;
 
-	reg [7:0] read  = 8'h0B;
-	reg [7:0] write = 8'h0A;
+	reg [7:0] read  = `READ;
+	reg [7:0] write = `WRITE;
 	reg [7:0] read_write;
 	
 	reg [4:0] counter = 0;
