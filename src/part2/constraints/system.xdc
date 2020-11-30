@@ -9,7 +9,7 @@ set_property CONFIG_VOLTAGE 3.3 [current_design]
 
 # clk
 set_property -dict { PACKAGE_PIN E3 IOSTANDARD LVCMOS33 } [get_ports { clk }];
-create_clock -add -name sys_clk_pin -period 23.00 [get_ports {clk}];
+create_clock -name sys_clk_pin -period 333.00 -waveform {0 5} [get_ports {clk}];
 
 # switches
 set_property -dict { PACKAGE_PIN V10 IOSTANDARD LVCMOS33 } [get_ports { resetn }];

@@ -12,7 +12,7 @@
 #define IRQ_REGISTERS_MEMORY_ADD 0x10000004
 #define READ_ACCELEROMETER_Y     0x20000000
 #define READ_ACCELEROMETER_Z     0x30000000
-#define LOOP_WAIT_LIMIT 100
+#define LOOP_WAIT_LIMIT 20000
 
 uint32_t global_counter = 0;
 
@@ -32,18 +32,32 @@ uint32_t *irq(uint32_t *regs, uint32_t irqs) {
 }
 
 
+
+
 void main() {
 
 	uint32_t y_value;
 	uint32_t z_value;
+	uint32_t final_value;
+	int delay;
 
 	// The stack in an infinite loop that does nothing
 	while (1) 
 	{
 		y_value = *((volatile uint32_t *)READ_ACCELEROMETER_Y);
-		putuint ( y_value );
+		y_value = y_value << 16;
 
 		z_value = *((volatile uint32_t *)READ_ACCELEROMETER_Z);
-		putuint ( z_value );
+		
+		final_value = y_value | z_value;
+
+		putuint ( final_value );
+
+		delay = 0;
+		while (delay < LOOP_WAIT_LIMIT)
+		{
+			delay++;
+		}
+
 	}
 }

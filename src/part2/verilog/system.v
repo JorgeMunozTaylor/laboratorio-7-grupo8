@@ -101,10 +101,6 @@ module system (
 	// Accelerometer reader module instantiation
 	// ******************************************
 
-    wire MISO;
-    wire MOSI;
-    wire SCLK; 
-    wire CS;  // Chip select, select the slave
     wire [15:0] Y_value;
     wire [15:0] Z_value;
 
@@ -124,29 +120,30 @@ module system (
 
 	generate if (FAST_MEMORY) begin
 		always @(posedge clk) begin
-			mem_ready <= 1;
+			mem_ready   <= 1;
 			out_byte_en <= 0;
-			mem_rdata <= memory[mem_la_addr >> 2];
+			mem_rdata   <= memory[mem_la_addr >> 2];
 			if (mem_la_write && (mem_la_addr >> 2) < MEM_SIZE) begin
 				if (mem_la_wstrb[0]) memory[mem_la_addr >> 2][ 7: 0] <= mem_la_wdata[ 7: 0];
 				if (mem_la_wstrb[1]) memory[mem_la_addr >> 2][15: 8] <= mem_la_wdata[15: 8];
 				if (mem_la_wstrb[2]) memory[mem_la_addr >> 2][23:16] <= mem_la_wdata[23:16];
 				if (mem_la_wstrb[3]) memory[mem_la_addr >> 2][31:24] <= mem_la_wdata[31:24];
 			end
-			else
 
-			// Put the irq count on the outbyte output
+			else
 			if (mem_la_write && mem_la_addr == 32'h1000_0000) begin
 				out_byte_en    <= 1;
 				out_byte 	   <= mem_la_wdata;
 				num_to_display <= mem_la_wdata;
 			end
 
-			else if (mem_la_read && mem_la_addr == 32'h2000_0000 && CS) begin
+			else
+			if (mem_la_read && mem_la_addr == 32'h2000_0000 ) begin
 				mem_rdata <= Y_value;
 			end
 
-			else if (mem_la_read && mem_la_addr == 32'h3000_0000 && CS) begin
+			else
+			if (mem_la_read && mem_la_addr == 32'h3000_0000 ) begin
 				mem_rdata <= Z_value;
 			end
 		end

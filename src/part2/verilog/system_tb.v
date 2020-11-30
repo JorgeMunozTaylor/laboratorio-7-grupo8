@@ -10,10 +10,6 @@
 
 `define READ  8'h0B //Read instruction
 `define WRITE 8'h0A //Write instruction
-`define Y_LSB 8'h10
-`define Y_MSB 8'h11
-`define Z_LSB 8'h12
-`define Z_MSB 8'h13
 
 
 module system_tb;
@@ -26,6 +22,8 @@ module system_tb;
 			$dumpfile("system.vcd");
 			$dumpvars(0, system_tb);
 		end
+
+		resetn <= 1;
 	end
 
 	wire trap;
@@ -40,47 +38,60 @@ module system_tb;
 
     // Reg address of the accelerometer Y and Z axis
 	reg [7:0] axis_addr; //Store the address
-	reg [7:0] reg_output;
+	reg [7:0] accelerometer_registers [0:19]; //Emulate some accelerometer regs
 
 	reg [7:0] read  = `READ;
 	reg [7:0] write = `WRITE;
 	reg [7:0] read_write;
 	
-	reg [4:0] counter = 0;
-
+	reg [5:0] counter = 0;
+	
 
 	system uut (
-		.clk        (clk        ),
-		.resetn     (resetn     ),
-		.trap       (trap       ),
-		.out_byte   (out_byte   ),
-		.out_byte_en(out_byte_en),
-	    .INT1       ( INT1      ),
-	    .INT2       ( INT2      ),
-	    .MISO       ( MISO      ),
-	    .MOSI       ( MOSI      ),
-	    .CS         ( CS        ), 
-	    .SCLK       ( SCLK      )
+		.clk        ( clk        ),
+		.resetn     ( resetn     ),
+		.trap       ( trap       ),
+		.out_byte   ( out_byte   ),
+		.out_byte_en( out_byte_en),
+	    .INT1       ( INT1       ),
+	    .INT2       ( INT2       ),
+	    .MISO       ( MISO       ),
+	    .MOSI       ( MOSI       ),
+	    .CS         ( CS         ), 
+	    .SCLK       ( SCLK       )
 	);
 
-
-	always @(*)
+	/* Define accelerometer registers values */
+	initial
 	begin
-		if (counter == 16)
-		begin
-			if      ( axis_addr == `Y_LSB ) reg_output = 5; 
-			else if ( axis_addr == `Y_MSB ) reg_output = 10;
-			else if ( axis_addr == `Z_LSB ) reg_output = 15;
-			else if ( axis_addr == `Z_MSB ) reg_output = 20;
-		end
+		accelerometer_registers [0 ] = 0;
+		accelerometer_registers [1 ] = 1;
+		accelerometer_registers [2 ] = 2;
+		accelerometer_registers [3 ] = 3;
+		accelerometer_registers [4 ] = 4;
+		accelerometer_registers [5 ] = 5;
+		accelerometer_registers [6 ] = 6;
+		accelerometer_registers [7 ] = 7;
+		accelerometer_registers [8 ] = 8;
+		accelerometer_registers [9 ] = 9;
+		accelerometer_registers [10] = 10;
+		accelerometer_registers [11] = 11;
+		accelerometer_registers [12] = 12;
+		accelerometer_registers [13] = 13;
+		accelerometer_registers [14] = 14;
+		accelerometer_registers [15] = 15;
+		accelerometer_registers [16] = 16;
+		accelerometer_registers [17] = 17;
+		accelerometer_registers [18] = 18;
+		accelerometer_registers [19] = 19;
 	end
 
-
+	/**/
 	always @( posedge SCLK )
 	begin
 		if ( CS == 0 )
 		begin	
-			if (counter != 24)
+			if (counter != 48)
 				counter = counter+1;
 		end
 
@@ -92,103 +103,153 @@ module system_tb;
 	always @(*)
 	begin
 		if (counter==1)
-		begin
 			read_write [7] = MOSI;
-		end
+		
 		else if (counter==2)
-		begin
 			read_write [6] = MOSI;
-		end
+		
 		else if (counter==3)
-		begin
 			read_write [5] = MOSI;
-		end
+		
 		else if (counter==4)
-		begin
 			read_write [4] = MOSI;
-		end
+		
 		else if (counter==5)
-		begin
 			read_write [3] = MOSI;
-		end
+		
 		else if (counter==6)
-		begin
 			read_write [2] = MOSI;
-		end
+		
 		else if (counter==7)
-		begin
 			read_write [1] = MOSI;
-		end
+		
 		else if (counter==8)
-		begin
 			read_write [0] = MOSI;
-		end
-
+		
+		/*******************************************/
 		else if (counter==9)
-		begin
 			axis_addr [7] = MOSI;
-		end
+		
 		else if (counter==10)
-		begin
 			axis_addr [6] = MOSI;
-		end
+		
 		else if (counter==11)
-		begin
 			axis_addr [5] = MOSI;
-		end
+		
 		else if (counter==12)
-		begin
 			axis_addr [4] = MOSI;
-		end
+		
 		else if (counter==13)
-		begin
 			axis_addr [3] = MOSI;
-		end
+		
 		else if (counter==14)
-		begin
 			axis_addr [2] = MOSI;
-		end
+		
 		else if (counter==15)
-		begin
 			axis_addr [1] = MOSI;
-		end
+		
 		else if (counter==16)
 		begin
 			axis_addr [0] = MOSI;
-			MISO = ( read_write == read )? reg_output[7]:0;
+			MISO          = ( read_write == read )? accelerometer_registers [axis_addr][7]:0;
 		end
 
-
-
+		/*******************************************/
 		else if (counter==17)
-		begin
-			MISO = ( read_write == read )? reg_output[6]:0;
-		end
-		else if (counter==18)
-		begin
-			MISO = ( read_write == read )? reg_output[5]:0;
-		end
-		else if (counter==19)
-		begin
-			MISO = ( read_write == read )? reg_output[4]:0;
-		end
-		else if (counter==20)
-		begin
-			MISO = ( read_write == read )? reg_output[3]:0;
-		end
-		else if (counter==21)
-		begin
-			MISO = ( read_write == read )? reg_output[2]:0;
-		end
-		else if (counter==22)
-		begin
-			MISO = ( read_write == read )? reg_output[1]:0;
-		end
-		else if (counter==23)
-		begin
-			MISO = ( read_write == read )? reg_output[0]:0;
-		end
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr][6]:0;
 		
+		else if (counter==18)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr][5]:0;
+		
+		else if (counter==19)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr][4]:0;
+		
+		else if (counter==20)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr][3]:0;
+		
+		else if (counter==21)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr][2]:0;
+		
+		else if (counter==22)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr][1]:0;
+		
+		else if (counter==23)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr][0]:0;
+
+		/*******************************************/
+		else if (counter==24)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr+1][7]:0;
+		
+		else if (counter==25)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr+1][6]:0;
+		
+		else if (counter==26)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr+1][5]:0;
+		
+		else if (counter==27)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr+1][4]:0;
+		
+		else if (counter==28)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr+1][3]:0;
+		
+		else if (counter==29)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr+1][2]:0;
+		
+		else if (counter==30)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr+1][1]:0;
+		
+		else if (counter==31)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr+1][0]:0;
+
+		/*******************************************/
+		else if (counter==32)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr+2][7]:0;
+		
+		else if (counter==33)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr+2][6]:0;
+		
+		else if (counter==34)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr+2][5]:0;
+		
+		else if (counter==35)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr+2][4]:0;
+		
+		else if (counter==36)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr+2][3]:0;
+		
+		else if (counter==37)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr+2][2]:0;
+		
+		else if (counter==38)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr+2][1]:0;
+		
+		else if (counter==39)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr+2][0]:0;
+
+		/*******************************************/
+		else if (counter==40)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr+3][7]:0;
+		
+		else if (counter==41)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr+3][6]:0;
+		
+		else if (counter==42)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr+3][5]:0;
+		
+		else if (counter==43)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr+3][4]:0;
+		
+		else if (counter==44)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr+3][3]:0;
+		
+		else if (counter==45)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr+3][2]:0;
+		
+		else if (counter==46)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr+3][1]:0;
+		
+		else if (counter==47)
+			MISO = ( read_write == read )? accelerometer_registers [axis_addr+3][0]:0;
 	end
 
 

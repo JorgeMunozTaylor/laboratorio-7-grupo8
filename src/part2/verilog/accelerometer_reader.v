@@ -32,52 +32,63 @@ module accelerometer_reader
     output reg [15:0] Z_value
 );
     // Reg address of the accelerometer Y and Z axis
-    reg [7:0] axis_addr = 8'h0F; // 0x10-1
+    reg [7:0] init_addr = `Y_LSB;
 
     reg [7:0] read  = `READ;
     reg [7:0] write = `WRITE;
 
     reg        counter      = 0;
-    reg [4:0 ] sclk_counter = 0;
-    reg [15:0] y_data;
-    reg [15:0] z_data;
-    reg [7:0 ] temp_data;
+    reg [5:0 ] sclk_counter = 0;
+    reg [15:0] y_data       = 0;
+    reg [15:0] z_data       = 0;
+    reg [2:0 ] selector     = 3'b000; 
     
-
-    /**/
-    always @(CS)
-    begin
-        if (CS == 1)
-        begin
-            if ( axis_addr != `Z_MSB )
-                axis_addr <= axis_addr+1;
-            else
-                axis_addr <= `Y_LSB;
-        end
-    end
-
-
     /**/
     always @(posedge clk)
     begin
-        
-        if ( sclk_counter == 24 )
+
+        if ( selector == 3'b100 )
         begin
-            CS      <= 1; // Stop transfer
-            counter <= 0;
+            if ( sclk_counter == 48 )
+            begin
+                CS      <= 1; // Stop transfer
+                counter <= 0;
+            end
+
+            if ( counter != 0 )
+            begin
+                // Begin the instruction transfer
+                CS <= 0;
+            end
+
+            else if ( counter == 0 )
+            begin
+                CS      <= 1;
+                counter <= counter+1;
+            end
         end
 
-        if ( counter != 0 )
+        else
         begin
-            // Begin the instruction transfer
-            CS <= 0;
+            if ( sclk_counter == 24 )
+            begin
+                CS      <= 1; // Stop transfer
+                counter <= 0;
+            end
+
+            if ( counter != 0 )
+            begin
+                // Begin the instruction transfer
+                CS <= 0;
+            end
+
+            else if ( counter == 0 )
+            begin
+                CS      <= 1;
+                counter <= counter+1;
+            end            
         end
 
-        else if ( counter == 0 )
-        begin
-            CS      <= 1;
-            counter <= counter+1;
-        end
     end
 
 
@@ -92,90 +103,246 @@ module accelerometer_reader
 
 
     /**/
-    always @( CS )
-    begin
-        case ( axis_addr )
-            `Y_LSB: y_data [7:0 ] = temp_data; 
-            `Y_MSB: y_data [15:8] = temp_data;
-            `Z_LSB: z_data [7:0 ] = temp_data;
-            `Z_MSB: z_data [15:8] = temp_data;
-            default: y_data = 0;
-        endcase
-    end
-
-
-    /**/
     always @( posedge CS )
     begin
-        if ( axis_addr == `Y_MSB)
+        if ( selector == 3'b100 )
+        begin
             Y_value = y_data;
-
-        else if ( axis_addr == `Z_MSB)
             Z_value = z_data;
+        end
     end
 
 
     /**/
     always @( posedge SCLK )
     begin
-        if ( CS == 0 && sclk_counter != 24 )
+
+        if ( selector == 3'b100 )
         begin
-            sclk_counter <= sclk_counter+1;
+            if ( CS == 0 && sclk_counter != 48 )
+            begin
+                sclk_counter <= sclk_counter+1;
 
-            if ( sclk_counter == 0 )
-                MOSI <= read[7];
-            else if ( sclk_counter == 1 )
-                MOSI <= read[6];
-            else if ( sclk_counter == 2 )
-                MOSI <= read[5];   
-            else if ( sclk_counter == 3 )
-                MOSI <= read[4];
-            else if ( sclk_counter == 4 )
-                MOSI <= read[3]; 
-            else if ( sclk_counter == 5 )
-                MOSI <= read[2];
-            else if ( sclk_counter == 6 )
-                MOSI <= read[1]; 
-            else if ( sclk_counter == 7 )
-                MOSI <= read[0];
+                if ( sclk_counter == 0 )
+                    MOSI <= read[7];
+                else if ( sclk_counter == 1 )
+                    MOSI <= read[6];
+                else if ( sclk_counter == 2 )
+                    MOSI <= read[5];   
+                else if ( sclk_counter == 3 )
+                    MOSI <= read[4];
+                else if ( sclk_counter == 4 )
+                    MOSI <= read[3]; 
+                else if ( sclk_counter == 5 )
+                    MOSI <= read[2];
+                else if ( sclk_counter == 6 )
+                    MOSI <= read[1]; 
+                else if ( sclk_counter == 7 )
+                    MOSI <= read[0];
 
-            else if ( sclk_counter == 8 )
-                MOSI <= axis_addr[7];
-            else if ( sclk_counter == 9 )
-                MOSI <= axis_addr[6];
-            else if ( sclk_counter == 10 )
-                MOSI <= axis_addr[5];   
-            else if ( sclk_counter == 11 )
-                MOSI <= axis_addr[4];
-            else if ( sclk_counter == 12 )
-                MOSI <= axis_addr[3]; 
-            else if ( sclk_counter == 13 )
-                MOSI <= axis_addr[2];
-            else if ( sclk_counter == 14 )
-                MOSI <= axis_addr[1]; 
-            else if ( sclk_counter == 15 )
-                MOSI <= axis_addr[0];
+                else if ( sclk_counter == 8 )
+                    MOSI <= init_addr[7];
+                else if ( sclk_counter == 9 )
+                    MOSI <= init_addr[6];
+                else if ( sclk_counter == 10 )
+                    MOSI <= init_addr[5];   
+                else if ( sclk_counter == 11 )
+                    MOSI <= init_addr[4];
+                else if ( sclk_counter == 12 )
+                    MOSI <= init_addr[3]; 
+                else if ( sclk_counter == 13 )
+                    MOSI <= init_addr[2];
+                else if ( sclk_counter == 14 )
+                    MOSI <= init_addr[1]; 
+                else if ( sclk_counter == 15 )
+                    MOSI <= init_addr[0];
 
-            else if ( sclk_counter == 16 )
-                temp_data[7] <= MISO;
-            else if ( sclk_counter == 17 )
-                temp_data[6] <= MISO;
-            else if ( sclk_counter == 18 )
-                temp_data[5] <= MISO;
-            else if ( sclk_counter == 19 )
-                temp_data[4] <= MISO;
-            else if ( sclk_counter == 20 )
-                temp_data[3] <= MISO;
-            else if ( sclk_counter == 21 )
-                temp_data[2] <= MISO;
-            else if ( sclk_counter == 22 )
-                temp_data[1] <= MISO;
-            else if ( sclk_counter == 23 )
-                temp_data[0] <= MISO;    
+                else if ( sclk_counter == 16 )
+                    y_data[7] <= MISO;
+                else if ( sclk_counter == 17 )
+                    y_data[6] <= MISO;
+                else if ( sclk_counter == 18 )
+                    y_data[5] <= MISO;
+                else if ( sclk_counter == 19 )
+                    y_data[4] <= MISO;
+                else if ( sclk_counter == 20 )
+                    y_data[3] <= MISO;
+                else if ( sclk_counter == 21 )
+                    y_data[2] <= MISO;
+                else if ( sclk_counter == 22 )
+                    y_data[1] <= MISO;
+                else if ( sclk_counter == 23 )
+                    y_data[0] <= MISO;    
+
+                else if ( sclk_counter == 24 )
+                    y_data[15] <= MISO;
+                else if ( sclk_counter == 25 )
+                    y_data[14] <= MISO;
+                else if ( sclk_counter == 26 )
+                    y_data[13] <= MISO;
+                else if ( sclk_counter == 27 )
+                    y_data[12] <= MISO;
+                else if ( sclk_counter == 28 )
+                    y_data[11] <= MISO;
+                else if ( sclk_counter == 29 )
+                    y_data[10] <= MISO;
+                else if ( sclk_counter == 30 )
+                    y_data[9] <= MISO;
+                else if ( sclk_counter == 31 )
+                    y_data[8] <= MISO;
+
+                else if ( sclk_counter == 32 )
+                    z_data[7] <= MISO;
+                else if ( sclk_counter == 33 )
+                    z_data[6] <= MISO;
+                else if ( sclk_counter == 34 )
+                    z_data[5] <= MISO;
+                else if ( sclk_counter == 35 )
+                    z_data[4] <= MISO;
+                else if ( sclk_counter == 36 )
+                    z_data[3] <= MISO;
+                else if ( sclk_counter == 37 )
+                    z_data[2] <= MISO;
+                else if ( sclk_counter == 38 )
+                    z_data[1] <= MISO;
+                else if ( sclk_counter == 39 )
+                    z_data[0] <= MISO;    
+
+                else if ( sclk_counter == 40 )
+                    z_data[15] <= MISO;
+                else if ( sclk_counter == 41 )
+                    z_data[14] <= MISO;
+                else if ( sclk_counter == 42 )
+                    z_data[13] <= MISO;
+                else if ( sclk_counter == 43 )
+                    z_data[12] <= MISO;
+                else if ( sclk_counter == 44 )
+                    z_data[11] <= MISO;
+                else if ( sclk_counter == 45 )
+                    z_data[10] <= MISO;
+                else if ( sclk_counter == 46 )
+                    z_data[9] <= MISO;
+                else if ( sclk_counter == 47 )
+                    z_data[8] <= MISO;
+            end   
+            else
+                sclk_counter <= 0;
         end
-            
+
         else
-            sclk_counter <= 0;
+        begin
+            
+            if ( CS == 0 && sclk_counter != 48 )
+            begin
+                sclk_counter <= sclk_counter+1;
+
+                if ( sclk_counter == 0 )
+                    MOSI <= read[7];
+                else if ( sclk_counter == 1 )
+                    MOSI <= read[6];
+                else if ( sclk_counter == 2 )
+                    MOSI <= read[5];   
+                else if ( sclk_counter == 3 )
+                    MOSI <= read[4];
+                else if ( sclk_counter == 4 )
+                    MOSI <= read[3]; 
+                else if ( sclk_counter == 5 )
+                    MOSI <= read[2];
+                else if ( sclk_counter == 6 )
+                    MOSI <= read[1]; 
+                else if ( sclk_counter == 7 )
+                    MOSI <= read[0];
+
+                else if ( sclk_counter == 8 )
+                    MOSI <= init_addr[7];
+                else if ( sclk_counter == 9 )
+                    MOSI <= init_addr[6];
+                else if ( sclk_counter == 10 )
+                    MOSI <= init_addr[5];   
+                else if ( sclk_counter == 11 )
+                    MOSI <= init_addr[4];
+                else if ( sclk_counter == 12 )
+                    MOSI <= init_addr[3]; 
+                else if ( sclk_counter == 13 )
+                    MOSI <= init_addr[2];
+                else if ( sclk_counter == 14 )
+                    MOSI <= init_addr[1]; 
+                else if ( sclk_counter == 15 )
+                    MOSI <= init_addr[0];
+
+                else if ( sclk_counter == 16 )
+                    y_data[7] <= MISO;
+                else if ( sclk_counter == 17 )
+                    y_data[6] <= MISO;
+                else if ( sclk_counter == 18 )
+                    y_data[5] <= MISO;
+                else if ( sclk_counter == 19 )
+                    y_data[4] <= MISO;
+                else if ( sclk_counter == 20 )
+                    y_data[3] <= MISO;
+                else if ( sclk_counter == 21 )
+                    y_data[2] <= MISO;
+                else if ( sclk_counter == 22 )
+                    y_data[1] <= MISO;
+                else if ( sclk_counter == 23 )
+                    y_data[0] <= MISO;    
+
+                else if ( sclk_counter == 24 )
+                    y_data[15] <= MISO;
+                else if ( sclk_counter == 25 )
+                    y_data[14] <= MISO;
+                else if ( sclk_counter == 26 )
+                    y_data[13] <= MISO;
+                else if ( sclk_counter == 27 )
+                    y_data[12] <= MISO;
+                else if ( sclk_counter == 28 )
+                    y_data[11] <= MISO;
+                else if ( sclk_counter == 29 )
+                    y_data[10] <= MISO;
+                else if ( sclk_counter == 30 )
+                    y_data[9] <= MISO;
+                else if ( sclk_counter == 31 )
+                    y_data[8] <= MISO;
+
+                else if ( sclk_counter == 32 )
+                    z_data[7] <= MISO;
+                else if ( sclk_counter == 33 )
+                    z_data[6] <= MISO;
+                else if ( sclk_counter == 34 )
+                    z_data[5] <= MISO;
+                else if ( sclk_counter == 35 )
+                    z_data[4] <= MISO;
+                else if ( sclk_counter == 36 )
+                    z_data[3] <= MISO;
+                else if ( sclk_counter == 37 )
+                    z_data[2] <= MISO;
+                else if ( sclk_counter == 38 )
+                    z_data[1] <= MISO;
+                else if ( sclk_counter == 39 )
+                    z_data[0] <= MISO;    
+
+                else if ( sclk_counter == 40 )
+                    z_data[15] <= MISO;
+                else if ( sclk_counter == 41 )
+                    z_data[14] <= MISO;
+                else if ( sclk_counter == 42 )
+                    z_data[13] <= MISO;
+                else if ( sclk_counter == 43 )
+                    z_data[12] <= MISO;
+                else if ( sclk_counter == 44 )
+                    z_data[11] <= MISO;
+                else if ( sclk_counter == 45 )
+                    z_data[10] <= MISO;
+                else if ( sclk_counter == 46 )
+                    z_data[9] <= MISO;
+                else if ( sclk_counter == 47 )
+                    z_data[8] <= MISO;
+            end   
+            else
+                sclk_counter <= 0;
+
+        end
+
     end
 
 endmodule
