@@ -41,7 +41,7 @@ void main() {
 	uint32_t final_value;
 	int delay;
 
-	// The stack in an infinite loop that does nothing
+	// 
 	while (1) 
 	{
 		y_value = *((volatile uint32_t *)READ_ACCELEROMETER_Y);
@@ -58,6 +58,5 @@ void main() {
 		{
 			delay++;
 		}
-
 	}
 }

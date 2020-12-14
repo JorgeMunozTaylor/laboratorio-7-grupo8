@@ -46,13 +46,14 @@ module system (
 	wire [31:0] mem_la_wdata;
 	wire [3:0] mem_la_wstrb;
 
+
 	picorv32 #(
-		// Enable the irq handler of picorv32 core
+		//Enable the irq handler of picorv32 core
 		.ENABLE_IRQ       (1),
 		.LATCHED_IRQ      (0),
 		.ENABLE_IRQ_QREGS (0),
 		.PROGADDR_IRQ     (32'h0000_0010)
-	)	
+	)
 	picorv32_core (
 		.clk         (clk         ),
 		.resetn      (resetn      ),
@@ -139,12 +140,12 @@ module system (
 
 			else
 			if (mem_la_read && mem_la_addr == 32'h2000_0000 ) begin
-				mem_rdata <= Y_value;
+				mem_rdata <= {16'b0, Y_value};
 			end
 
 			else
 			if (mem_la_read && mem_la_addr == 32'h3000_0000 ) begin
-				mem_rdata <= Z_value;
+				mem_rdata <= {16'b0, Z_value};
 			end
 		end
 	end else begin

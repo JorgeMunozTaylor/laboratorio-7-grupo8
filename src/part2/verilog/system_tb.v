@@ -43,6 +43,7 @@ module system_tb;
 	reg [7:0] read  = `READ;
 	reg [7:0] write = `WRITE;
 	reg [7:0] read_write;
+	reg [7:0] master_instruction;
 	
 	reg [5:0] counter = 0;
 	
@@ -91,19 +92,25 @@ module system_tb;
 	begin
 		if ( CS == 0 )
 		begin	
-			if (counter != 48)
-				counter = counter+1;
+			if (read_write != write ) 
+			begin
+				if (counter != 48)
+					counter = counter+1;
+			end
+
+			else
+			begin
+				if (counter != 24)
+					counter = counter+1;				
+			end
 		end
 
 		else
 			counter = 0;
-	end
 
-
-	always @(*)
-	begin
+		/**/
 		if (counter==1)
-			read_write [7] = MOSI;
+			read_write [7] <= MOSI;
 		
 		else if (counter==2)
 			read_write [6] = MOSI;
@@ -148,107 +155,131 @@ module system_tb;
 		else if (counter==15)
 			axis_addr [1] = MOSI;
 		
-		else if (counter==16)
-		begin
+		else if ( counter==16 )
 			axis_addr [0] = MOSI;
-			MISO          = ( read_write == read )? accelerometer_registers [axis_addr][7]:0;
+		
+	end
+
+
+	/**/
+	always @( negedge SCLK )
+	begin	
+		/*******************************************/
+		if ( counter==17 )
+		begin
+			if( read_write == read ) MISO = accelerometer_registers [axis_addr][7];
+			else master_instruction [7] = MOSI; 
 		end
 
-		/*******************************************/
-		else if (counter==17)
-			MISO = ( read_write == read )? accelerometer_registers [axis_addr][6]:0;
+		else if (counter==18) begin
+			if( read_write == read ) MISO = accelerometer_registers [axis_addr][6];
+			else master_instruction [6] = MOSI;
+		end
 		
-		else if (counter==18)
-			MISO = ( read_write == read )? accelerometer_registers [axis_addr][5]:0;
+		else if (counter==19) begin
+			if( read_write == read ) MISO = accelerometer_registers [axis_addr][5];
+			else master_instruction [5] = MOSI;
+		end
 		
-		else if (counter==19)
-			MISO = ( read_write == read )? accelerometer_registers [axis_addr][4]:0;
-		
-		else if (counter==20)
-			MISO = ( read_write == read )? accelerometer_registers [axis_addr][3]:0;
-		
-		else if (counter==21)
-			MISO = ( read_write == read )? accelerometer_registers [axis_addr][2]:0;
-		
-		else if (counter==22)
-			MISO = ( read_write == read )? accelerometer_registers [axis_addr][1]:0;
-		
-		else if (counter==23)
-			MISO = ( read_write == read )? accelerometer_registers [axis_addr][0]:0;
+		else if (counter==20) begin
+			if( read_write == read ) MISO = accelerometer_registers [axis_addr][4];
+			else master_instruction [4] = MOSI;
+		end
 
+		else if (counter==21) begin
+			if( read_write == read ) MISO = accelerometer_registers [axis_addr][3];
+			else master_instruction [3] = MOSI;
+		end
+
+		else if (counter==22) begin
+			if( read_write == read ) MISO = accelerometer_registers [axis_addr][2];
+			else master_instruction [2] = MOSI;
+		end
+
+		else if (counter==23) begin
+			if( read_write == read ) MISO = accelerometer_registers [axis_addr][1];
+			else master_instruction [1] = MOSI;
+		end
+
+		else if (counter==24) begin
+			if( read_write == read ) MISO = accelerometer_registers [axis_addr][0];
+			else master_instruction [0] = MOSI;
+		end
+	
 		/*******************************************/
-		else if (counter==24)
+		else if (counter==25) begin
 			MISO = ( read_write == read )? accelerometer_registers [axis_addr+1][7]:0;
-		
-		else if (counter==25)
+		end
+
+		else if (counter==26)
 			MISO = ( read_write == read )? accelerometer_registers [axis_addr+1][6]:0;
 		
-		else if (counter==26)
+		else if (counter==27)
 			MISO = ( read_write == read )? accelerometer_registers [axis_addr+1][5]:0;
 		
-		else if (counter==27)
+		else if (counter==28)
 			MISO = ( read_write == read )? accelerometer_registers [axis_addr+1][4]:0;
 		
-		else if (counter==28)
+		else if (counter==29)
 			MISO = ( read_write == read )? accelerometer_registers [axis_addr+1][3]:0;
 		
-		else if (counter==29)
+		else if (counter==30)
 			MISO = ( read_write == read )? accelerometer_registers [axis_addr+1][2]:0;
 		
-		else if (counter==30)
+		else if (counter==31)
 			MISO = ( read_write == read )? accelerometer_registers [axis_addr+1][1]:0;
 		
-		else if (counter==31)
+		else if (counter==32)
 			MISO = ( read_write == read )? accelerometer_registers [axis_addr+1][0]:0;
 
 		/*******************************************/
-		else if (counter==32)
+		else if (counter==33)
 			MISO = ( read_write == read )? accelerometer_registers [axis_addr+2][7]:0;
 		
-		else if (counter==33)
+		else if (counter==34)
 			MISO = ( read_write == read )? accelerometer_registers [axis_addr+2][6]:0;
 		
-		else if (counter==34)
+		else if (counter==35)
 			MISO = ( read_write == read )? accelerometer_registers [axis_addr+2][5]:0;
 		
-		else if (counter==35)
+		else if (counter==36)
 			MISO = ( read_write == read )? accelerometer_registers [axis_addr+2][4]:0;
 		
-		else if (counter==36)
+		else if (counter==37)
 			MISO = ( read_write == read )? accelerometer_registers [axis_addr+2][3]:0;
 		
-		else if (counter==37)
+		else if (counter==38)
 			MISO = ( read_write == read )? accelerometer_registers [axis_addr+2][2]:0;
 		
-		else if (counter==38)
+		else if (counter==39)
 			MISO = ( read_write == read )? accelerometer_registers [axis_addr+2][1]:0;
 		
-		else if (counter==39)
+		else if (counter==40)
 			MISO = ( read_write == read )? accelerometer_registers [axis_addr+2][0]:0;
 
 		/*******************************************/
-		else if (counter==40)
+		else if (counter==41)
 			MISO = ( read_write == read )? accelerometer_registers [axis_addr+3][7]:0;
 		
-		else if (counter==41)
+		else if (counter==42)
 			MISO = ( read_write == read )? accelerometer_registers [axis_addr+3][6]:0;
 		
-		else if (counter==42)
+		else if (counter==43)
 			MISO = ( read_write == read )? accelerometer_registers [axis_addr+3][5]:0;
 		
-		else if (counter==43)
+		else if (counter==44)
 			MISO = ( read_write == read )? accelerometer_registers [axis_addr+3][4]:0;
 		
-		else if (counter==44)
+		else if (counter==45)
 			MISO = ( read_write == read )? accelerometer_registers [axis_addr+3][3]:0;
 		
-		else if (counter==45)
+		else if (counter==46)
 			MISO = ( read_write == read )? accelerometer_registers [axis_addr+3][2]:0;
 		
-		else if (counter==46)
+		else if (counter==47)
 			MISO = ( read_write == read )? accelerometer_registers [axis_addr+3][1]:0;
 		
-		else if (counter==47)
+		else if (counter==48)
 			MISO = ( read_write == read )? accelerometer_registers [axis_addr+3][0]:0;
 	end
 
